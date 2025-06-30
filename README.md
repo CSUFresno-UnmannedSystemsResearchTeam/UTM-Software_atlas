@@ -1,15 +1,29 @@
-# Introduction to ATLAS
-ATLAS or it's fullname Autonomous Traffic and Logistic Alignment System is a unmanned traffic managment system and mission planner.
+# ATLAS UTM - Autonomous Traffic and Logistic Alignment Systems
 
-# Purpose
+A comprehensive Unmanned Traffic Management (UTM) system with mission planning capabilities.
 
-# Features
+## Architecture
 
-# Project Packages
-## Individual
+- **apps/**: All applications and services
+- **libs/**: Shared libraries by functionality
+- **build/**: Build artifacts
+- **docs/**: Documentation
+- **sdk/**: External developer SDK
+- **tools/**: Development tools
+- **deploy/**: Infrastructure and deployment
+- **tests/**: Testing suites
 
-## Command Center
+## Quick Start
 
-# Roadmap
+```bash
+# Setup development environment
+./atlas setup
 
-# How to Contribute
+# Build all components
+./atlas build
+
+# Start development services
+./atlas dev
+
+# Run tests
+./atlas test

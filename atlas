@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""
+ATLAS UTM Central Command Tool
+"""
+import sys
+import subprocess
+import argparse
+from pathlib import Path
+import os
+
+def run_command(cmd, cwd=None):
+    """Execute shell command"""
+    try:
+        result = subprocess.run(cmd, shell=True, cwd=cwd, check=True, 
+                              capture_output=True, text=True)
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e.stderr}")
+        sys.exit(1)
+
+def setup_environment(args):
+    """Setup development environment"""
+    print("Setting up ATLAS development environment...")
+    
+    if args.production:
+        print("Setting up production environment...")
+        # Setup PostgreSQL and Redis for production
+        run_command("sudo systemctl enable postgresql redis-server")
+        run_command("sudo systemctl start postgresql redis-server")
+    elif args.codespace:
+        print("Setting up GitHub Codespace...")
+        # Codespace-specific setup
+        run_command("docker-compose -f deploy/docker/docker-compose.dev.yml up -d")
+    else:
+        print("Setting up development environment...")
+        # Start local databases
+        run_command("docker-compose -f deploy/docker/docker-compose.dev.yml up -d")
+
+def build_project(args):
+    """Build ATLAS components"""
+    build_dir = Path("build")
+    build_dir.mkdir(exist_ok=True)
+    
+    if args.service:
+        print(f"Building service: {args.service}")
+        service_dir = Path(f"apps/{args.service}")
+        if service_dir.exists():
+            run_command(f"cmake -B build/{args.service} -S apps/{args.service} -G Ninja")
+            run_command(f"ninja -C build/{args.service}")
+        else:
+            print(f"Service {args.service} not found")
+    else:
+        print("Building all ATLAS components...")
+        run_command("cmake -B build -S . -G Ninja")
+        run_command("ninja -C build")
+
+def run_tests(args):
+    """Run ATLAS tests"""
+    if args.service:
+        print(f"Testing service: {args.service}")
+        run_command(f"ctest --test-dir build/{args.service}")
+    else:
+        print("Running all tests...")
+        run_command("ctest --test-dir build")
+
+def start_dev_server(args):
+    """Start development services"""
+    if args.mock:
+        print("Starting with mock services...")
+        # Start mock services
+    elif args.service:
+        print(f"Starting service: {args.service}")
+        run_command(f"./build/{args.service}/{args.service}")
+    else:
+        print("Starting all development services...")
+        run_command("docker-compose -f deploy/docker/docker-compose.dev.yml up")
+
+def generate_code(args):
+    """Generate code from protocols"""
+    if args.target == "proto":
+        print("Generating protobuf code...")
+        run_command("python tools/generators/proto_generator.py")
+    elif args.target == "docs":
+        print("Generating documentation...")
+        run_command("python tools/generators/doc_generator.py")
+    elif args.target == "sdk":
+        print("Generating SDK...")
+        run_command("python tools/generators/sdk_generator.py")
+
+def show_status():
+    """Show service health status"""
+    print("ATLAS Service Status:")
+    # Check if services are running
+    try:
+        run_command("docker-compose -f deploy/docker/docker-compose.dev.yml ps")
+    except:
+        print("No services running")
+
+def main():
+    parser = argparse.ArgumentParser(description="ATLAS UTM Development Tool")
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    
+    # Setup command
+    setup_parser = subparsers.add_parser('setup', help='Setup environment')
+    setup_parser.add_argument('--production', action='store_true', help='Production setup')
+    setup_parser.add_argument('--codespace', action='store_true', help='Codespace setup')
+    
+    # Build command
+    build_parser = subparsers.add_parser('build', help='Build components')
+    build_parser.add_argument('--service', help='Build specific service')
+    build_parser.add_argument('--release', action='store_true', help='Release build')
+    
+    # Test command
+    test_parser = subparsers.add_parser('test', help='Run tests')
+    test_parser.add_argument('--service', help='Test specific service')
+    test_parser.add_argument('--coverage', action='store_true', help='Generate coverage')
+    
+    # Dev command
+    dev_parser = subparsers.add_parser('dev', help='Start development server')
+    dev_parser.add_argument('--service', help='Start specific service')
+    dev_parser.add_argument('--mock', action='store_true', help='Use mock services')
+    
+    # Generate command
+    gen_parser = subparsers.add_parser('generate', help='Generate code')
+    gen_parser.add_argument('target', choices=['proto', 'docs', 'sdk'], help='Generation target')
+    
+    # Status command
+    subparsers.add_parser('status', help='Show service status')
+    
+    args = parser.parse_args()
+    
+    if args.command == 'setup':
+        setup_environment(args)
+    elif args.command == 'build':
+        build_project(args)
+    elif args.command == 'test':
+        run_tests(args)
+    elif args.command == 'dev':
+        start_dev_server(args)
+    elif args.command == 'generate':
+        generate_code(args)
+    elif args.command == 'status':
+        show_status()
+    else:
+        parser.print_help()
+
+if __name__ == '__main__':
+    main()

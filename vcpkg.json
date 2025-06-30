@@ -1,0 +1,21 @@
+{
+  "name": "atlas-utm",
+  "version": "1.0.0",
+  "description": "Autonomous Traffic and Logistic Alignment Systems",
+  "dependencies": [
+    "qt6-base",
+    "qt6-declarative",
+    "protobuf",
+    "grpc",
+    "postgresql",
+    "redis-plus-plus",
+    "opencv4",
+    "boost-system",
+    "boost-thread",
+    "eigen3",
+    "gtest",
+    "fmt",
+    "spdlog"
+  ],
+  "builtin-baseline": "2024.01.12"
+}
