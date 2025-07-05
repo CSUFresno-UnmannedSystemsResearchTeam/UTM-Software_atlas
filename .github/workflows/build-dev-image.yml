@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'Dockerfile.atlas-dev'
-      - '.github.workflows/build-dev-images.yml'
+      - '.github/workflows/build-dev-images.yml'
       - 'vcpkg.json'  # Rebuild if dependencies changes
   pull_request:
     branches: [ main ]
@@ -107,7 +107,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-form: type=gha  # GitHub Action cache
+          cache-from: type=gha  # GitHub Action cache
           cache-to: type=gha, mode=max
           build-args: |
             BUILDKIT_INLINE_CACHE=1
@@ -179,5 +179,4 @@ jobs:
         if: steps.check_image.outputs.skip == 'true'
         run: |
           echo "⏭️ Build skipped - image is up to date"
-          echo "The existing image is newer than any Dockerfile changes.
-
+          echo "The existing image is newer than any Dockerfile changes."
