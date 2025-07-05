@@ -6,7 +6,7 @@ on:
     paths:
       - 'Dockerfile.atlas-dev'
       - '.github.workflows/build-dev-images.yml'
-      - 'vcpkg,json'  # Rebuild if dependencies changes
+      - 'vcpkg.json'  # Rebuild if dependencies changes
   pull_request:
     branches: [ main ]
     paths:
@@ -46,7 +46,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secres.GITHUB_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata
         id: meta
@@ -78,22 +78,22 @@ jobs:
           # Try to pull the latest image to check if it exists
           if docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest 2>/dev/null; then
             # Get the creation date of the latest image
-            IMAGE_DATE=$(docker inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest --format'{{.Created}}')
+            IMAGE_DATE=$(docker inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest --format='{{.Created}}')
             IMAGE_TIMESTAMP=$(date -d "$IMAGE_DATE" +%s)
 
             # Get the last commit date for Dockerfile
             DOCKERFILE_TIMESTAMP=$(git log -1 --format="%ct" -- Dockerfile.atlas-dev)
 
-            # If image is newer than Dockerfile chagnes, skip build
+            # If image is newer than Dockerfile changes, skip build
             if [ $IMAGE_TIMESTAMP -gt $DOCKERFILE_TIMESTAMP ]; then
-              echo "skip=true" >> $GITHUB_TOKEN
+              echo "skip=true" >> $GITHUB_OUTPUT
               echo "Image is up to date, skipping build"
             else
-              echo "skip=false" >> $GITHUB_TOKEN
+              echo "skip=false" >> $GITHUB_OUTPUT
               echo "Dockerfile changed since last image build"
             fi
           else
-            echo "skip=false" >> $GITHUB_TOKEN
+            echo "skip=false" >> $GITHUB_OUTPUT
             echo "No existing image found"
           fi
 
@@ -102,7 +102,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./docker/dev/Dockerfile
+          file: Dockerfile.atlas-dev
           platforms: linux/amd64, linux/arm64 # Multi-platform build
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -140,7 +140,7 @@ jobs:
           echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
 
           # Get image size
-          SIZE=$(docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest --format "{{.Size}}")
+          SIZE=$(docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest --format="{{.Size}}")
           echo "| Size | $SIZE |" >> $GITHUB_STEP_SUMMARY
 
           # Get creation date
