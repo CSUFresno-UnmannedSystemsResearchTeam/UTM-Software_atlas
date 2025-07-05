@@ -1,6 +1,6 @@
 # ATLAS Docker Configurations
 
-This directory contains all Docker-related files for building, developing, and deploying the ATLAS UTM system across different environments.
+This directory contains all Docker-related files for building, developing, and deploying the ATLAS across different environments.
 
 ## Overview
 
@@ -14,29 +14,29 @@ ATLAS uses containerization for:
 
 ```
 docker/
-├── dev/                    # Development environment
-│   ├── docker-compose.yml  # Development services
-│   ├── Dockerfile.atlas-dev # Pre-built development image
-│   └── README.md           # Development setup guide
-├── prod/                   # Production environment
-│   ├── docker-compose.yml  # Production services
-│   ├── Dockerfile.atlas    # Production application image
-│   ├── Dockerfile.nginx    # Reverse proxy configuration
-│   └── README.md           # Production deployment guide
-├── ci/                     # Continuous Integration
-│   ├── Dockerfile.ci       # CI/testing environment
-│   ├── test-compose.yml    # Testing services
-│   └── README.md           # CI setup documentation
-└── scripts/                # Docker utility scripts
-    ├── build.sh            # Build all images
-    ├── push.sh             # Push images to registry
-    ├── deploy.sh           # Deployment automation
-    └── cleanup.sh          # Clean up resources
+├── dev/                        # Development environment
+│   ├── docker-compose.yml      # Development services
+│   ├── Dockerfile.atlas-dev    # Pre-built development image
+│   └── README.md               # Development setup guide
+├── prod/                       # Production environment
+│   ├── docker-compose.yml      # Production services
+│   ├── Dockerfile.atlas        # Production application image
+│   ├── Dockerfile.nginx        # Reverse proxy configuration
+│   └── README.md               # Production deployment guide
+├── ci/                         # Continuous Integration
+│   ├── Dockerfile.ci           # CI/testing environment
+│   ├── test-compose.yml        # Testing services
+│   └── README.md               # CI setup documentation
+└── scripts/                    # Docker utility scripts
+    ├── build.sh                # Build all images
+    ├── push.sh                 # Push images to registry
+    ├── deploy.sh               # Deployment automation
+    └── cleanup.sh              # Clean up resources
 ```
 
 ## Environment Configurations
 
-### **dev/** - Development Environment
+### **dev** - Development Environment
 
 **Purpose**: Local development with hot-reloading and debugging capabilities
 
@@ -47,19 +47,12 @@ docker/
 - Debug ports exposed
 - Persistent build cache for faster rebuilds
 
-**Quick Start**:
-```bash
-cd docker/dev
-docker-compose up -d
-docker exec -it atlas-dev bash
-```
-
 **Services**:
 - `atlas-dev`: Development container with pre-installed tools
 - `postgres`: Development database
 - `redis`: Development cache/message broker
 
-### **prod/** - Production Environment
+### **prod** - Production Environment
 
 **Purpose**: Production deployment with optimized performance and security
 
@@ -72,18 +65,10 @@ docker exec -it atlas-dev bash
 
 **Services**:
 - `atlas-gateway`: Nginx reverse proxy and load balancer
-- `atlas-app`: Main ATLAS application
-- `protocol-service`: Protocol handling service
-- `mission-service`: Mission planning service
-- `geofencing-service`: Airspace management service
-- `telemetry-service`: Real-time data processing
-- `alert-service`: Notification management
-- `radio-service`: Hardware communication
-- `database-service`: Data persistence
 - `postgres`: Production database with persistence
 - `redis`: Production cache with clustering
 
-### **ci/** - Continuous Integration
+### **ci** - Continuous Integration
 
 **Purpose**: Automated testing and validation in CI/CD pipelines
 
@@ -115,13 +100,6 @@ docker exec -it atlas-dev bash
   - Database client libraries
   - Debugging tools (GDB, Valgrind)
   - Code quality tools (clang-format, cppcheck)
-
-```dockerfile
-# Example usage
-FROM ghcr.io/csufresno-unmannedsystemsresearchteam/atlas-dev:latest
-WORKDIR /workspace
-# Development tools are already installed
-```
 
 ### **Production Images**
 
@@ -166,70 +144,6 @@ WORKDIR /workspace
   - Testing frameworks
   - Code coverage tools
   - Performance testing utilities
-
-## Docker Compose Configurations
-
-### **Development Compose** (`dev/docker-compose.yml`)
-
-```yaml
-# Key features of development compose
-services:
-  atlas-dev:
-    image: ghcr.io/csufresno-unmannedsystemsresearchteam/atlas-dev:latest
-    volumes:
-      - ../..:/workspace          # Source code mounting
-      - build_cache:/workspace/build  # Persistent build cache
-    environment:
-      - ATLAS_ENV=development
-      - DATABASE_URL=postgresql://atlas:atlas@postgres:5432/atlas_dev
-    ports:
-      - "8080:8080"              # Application UI
-      - "50051-50056:50051-50056" # gRPC services
-      - "5678:5678"              # Python debugger
-```
-
-### **Production Compose** (`prod/docker-compose.yml`)
-
-```yaml
-# Key features of production compose
-services:
-  atlas-gateway:
-    image: atlas-nginx:latest
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - atlas-app
-  
-  atlas-app:
-    image: atlas-app:latest
-    deploy:
-      replicas: 3              # Load balancing
-      resources:
-        limits:
-          memory: 512M         # Resource constraints
-          cpus: '0.5'
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-```
-
-### **CI Compose** (`ci/test-compose.yml`)
-
-```yaml
-# Key features of CI compose
-services:
-  atlas-ci:
-    image: atlas-ci:latest
-    environment:
-      - CI=true
-      - ATLAS_ENV=testing
-    volumes:
-      - ../..:/workspace
-      - test_artifacts:/workspace/test-results
-```
 
 ## Scripts and Automation
 
@@ -308,58 +222,6 @@ ghcr.io/csufresno-unmannedsystemsresearchteam/atlas-protocol:latest
 - `pr-42`: Pull request builds
 - `nightly`: Automated nightly builds
 
-### **Authentication**
-```bash
-# Login to GitHub Container Registry
-echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
-
-# Or using GitHub CLI
-gh auth token | docker login ghcr.io -u USERNAME --password-stdin
-```
-
-## Development Workflow
-
-### **Daily Development**
-```bash
-# 1. Start development environment
-cd docker/dev
-docker-compose up -d
-
-# 2. Enter development container
-docker exec -it atlas-dev bash
-
-# 3. Develop and test
-./atlas build
-./atlas test
-
-# 4. View logs
-docker-compose logs -f
-```
-
-### **Testing Changes**
-```bash
-# Test locally built image
-docker build -f docker/dev/Dockerfile.atlas-dev -t atlas-dev-local .
-docker run -it atlas-dev-local bash
-
-# Test with CI environment
-cd docker/ci
-docker-compose up --build
-```
-
-### **Preparing for Production**
-```bash
-# Build production images
-./docker/scripts/build.sh --env prod
-
-# Test production deployment locally
-cd docker/prod
-docker-compose up -d
-
-# Run production health checks
-./atlas status
-```
-
 ## Performance and Optimization
 
 ### **Image Size Optimization**
@@ -421,81 +283,6 @@ Production deployments can integrate with:
 - Prometheus and Grafana
 - Docker logging drivers
 - Cloud provider logging services
-
-## Troubleshooting
-
-### **Common Issues**
-
-**Container won't start:**
-```bash
-# Check container logs
-docker-compose logs service-name
-
-# Inspect container configuration
-docker inspect container-name
-
-# Check resource usage
-docker stats
-```
-
-**Build failures:**
-```bash
-# Clean build cache
-docker builder prune
-
-# Rebuild without cache
-docker-compose build --no-cache
-
-# Check disk space
-df -h
-```
-
-**Networking issues:**
-```bash
-# List Docker networks
-docker network ls
-
-# Inspect network configuration
-docker network inspect atlas-development
-
-# Test connectivity between containers
-docker exec -it container1 ping container2
-```
-
-**Permission issues:**
-```bash
-# Check file ownership in mounted volumes
-docker exec -it atlas-dev ls -la /workspace
-
-# Fix ownership (if needed)
-sudo chown -R $USER:$USER .
-```
-
-### **Debugging Tips**
-
-**Interactive debugging:**
-```bash
-# Run container with shell for debugging
-docker run -it --rm atlas-dev:latest bash
-
-# Override entrypoint for troubleshooting
-docker run -it --rm --entrypoint bash atlas-app:latest
-
-# Mount current directory for testing
-docker run -it --rm -v $(pwd):/workspace atlas-dev:latest
-```
-
-**Performance debugging:**
-```bash
-# Monitor resource usage
-docker stats --no-stream
-
-# Check container processes
-docker exec -it atlas-dev ps aux
-
-# View container filesystem
-docker exec -it atlas-dev df -h
-```
 
 ## Best Practices
 

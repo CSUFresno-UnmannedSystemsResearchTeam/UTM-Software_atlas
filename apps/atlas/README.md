@@ -4,9 +4,9 @@ The main Qt QML application providing the operator interface for the ATLAS UTM s
 
 ## Overview
 
-ATLAS is the primary Ground Control Station (GCS) application that operators use to:
+ATLAS is the primary application that operators use to:
 - Monitor and control up to 25 autonomous drones simultaneously
-- Plan and execute search and rescue missions
+- Plan and execute missions
 - Manage geofencing and airspace restrictions
 - Process alerts and confirmations from drones
 - Display live video feeds and telemetry data
@@ -17,19 +17,19 @@ ATLAS is the primary Ground Control Station (GCS) application that operators use
 - **Framework**: Qt 6 with QML/QtQuick
 - **Language**: C++20
 - **UI Pattern**: Model-View-Controller (MVC)
-- **Styling**: Dark tactical theme (Anduril-inspired)
+- **Styling**: Dark tactical theme
 - **Communication**: gRPC clients to backend services
 
 ### Project Structure
 ```
 atlas/
 ├── include/
-│   ├── controllers/        # MVC Controllers
-│   ├── models/            # Data models and business logic
-│   ├── services/          # Service client wrappers
-│   └── utils/             # Utility classes
+│   ├── controllers/      # MVC Controllers
+│   ├── models/           # Data models and business logic
+│   ├── services/         # Service client wrappers
+│   └── utils/            # Utility classes
 ├── src/
-│   ├── controllers/       # Controller implementations
+│   ├── controllers/      # Controller implementations
 │   ├── models/           # Model implementations
 │   ├── services/         # Service client implementations
 │   ├── utils/            # Utility implementations
@@ -62,7 +62,7 @@ atlas/
 │ ├─────────────┤ │                                       │
 │ │ ► Home      │ │            Main Content Area          │
 │ │   Drones    │ │                                       │
-│ │   Monitor   │ │      (Displays selected section)     │
+│ │   Monitor   │ │      (Displays selected section)      │
 │ │   Logs      │ │                                       │
 │ │   Operation │ │                                       │
 │ │   Radio     │ │                                       │
@@ -93,15 +93,15 @@ atlas/
 ```
 ┌─────────────────┬─────────────────────────────────────┐
 │                 │  Selected Drone Information         │
-│                 │  ├── ID, Status, Battery           │
-│                 │  ├── GPS Coordinates               │
-│     MAP         │  ├── Current Speed, Altitude       │
-│   (Left 60%)    │  ├── Mission Progress              │
-│                 │  └── Control Buttons               │
+│                 │  ├── ID, Status, Battery            │
+│                 │  ├── GPS Coordinates                │
+│     MAP         │  ├── Current Speed, Altitude        │
+│   (Left 60%)    │  ├── Mission Progress               │
+│                 │  └── Control Buttons                │
 │  • Drone icons  ├─────────────────────────────────────┤
 │  • Flight paths │                                     │
 │  • Search areas │     Video Feed Display Window       │
-│  • Boundaries   │       (720p max resolution)        │
+│  • Boundaries   │       (720p max resolution)         │
 │                 │                                     │
 └─────────────────┴─────────────────────────────────────┘
 ```
@@ -176,36 +176,6 @@ atlas/
 - Multiple camera switching
 - Video recording and snapshot capabilities
 
-## Build Configuration
-
-### Dependencies
-```cmake
-# Required Qt modules
-find_package(Qt6 REQUIRED COMPONENTS 
-    Core Widgets Quick QuickControls2 
-    Multimedia Location Positioning)
-
-# Service communication
-find_package(gRPC REQUIRED)
-find_package(Protobuf REQUIRED)
-
-# Additional libraries
-find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED)
-```
-
-### Build Targets
-```bash
-# Build atlas application
-cmake --build build --target atlas
-
-# Run atlas unit tests
-cmake --build build --target test-atlas
-
-# Install atlas (development)
-cmake --build build --target install-atlas
-```
-
 ## Testing
 
 ### Unit Tests (`tests/unit/`)
@@ -224,20 +194,6 @@ cmake --build build --target install-atlas
 - User interaction simulation
 - Visual regression testing
 
-### Running Tests
-```bash
-# All atlas tests
-./atlas test --service atlas
-
-# Specific test categories
-./atlas test --service atlas --category unit
-./atlas test --service atlas --category integration
-./atlas test --service atlas --category ui
-
-# Test coverage
-./atlas test --service atlas --coverage
-```
-
 ## Configuration
 
 ### Application Settings
@@ -246,33 +202,7 @@ cmake --build build --target install-atlas
 - Service endpoint configuration
 - User preferences and window layouts
 
-### Environment Variables
-```bash
-# Service endpoints
-export ATLAS_PROTOCOL_SERVICE=localhost:50051
-export ATLAS_MISSION_SERVICE=localhost:50052
-export ATLAS_DATABASE_SERVICE=localhost:50057
-
-# Application settings
-export ATLAS_LOG_LEVEL=DEBUG
-export ATLAS_MAP_CACHE_DIR=/tmp/atlas-maps
-export ATLAS_VIDEO_QUALITY=HIGH
-```
-
 ## Development
-
-### Running Locally
-```bash
-# Start backend services first
-./atlas dev --services-only
-
-# Start atlas application
-./atlas dev --service atlas
-
-# Or run directly
-cd build/apps/atlas
-./atlas
-```
 
 ### QML Development
 - Use Qt Creator for QML editing and live preview
@@ -294,8 +224,6 @@ cd build/apps/atlas
 ## Performance Considerations
 
 ### Memory Management
-- 400MB total budget for 25 drones
-- ~12MB per drone (telemetry, video buffers, metadata)
 - Efficient QML object lifecycle management
 - Smart pointer usage in C++ code
 
@@ -304,53 +232,3 @@ cd build/apps/atlas
 - <1 second command response time
 - 20-30 FPS video display capability
 - Responsive UI during high data throughput
-
-## Deployment
-
-### Development
-```bash
-# Start with development services
-./atlas dev
-```
-
-### Production
-```bash
-# Containerized deployment
-docker run -d --name atlas-app \
-  -p 8080:8080 \
-  -e ATLAS_ENV=production \
-  ghcr.io/csufresno-unmannedsystemsresearchteam/atlas:latest
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**Application won't start:**
-- Check service dependencies are running
-- Verify Qt libraries are installed
-- Check log output for specific errors
-
-**UI performance issues:**
-- Monitor memory usage with system tools
-- Check for QML binding loops
-- Verify video codec acceleration
-
-**Service connection failures:**
-- Verify service endpoints in configuration
-- Check network connectivity
-- Review service health status
-
-### Debug Mode
-```bash
-# Run with debug logging
-ATLAS_LOG_LEVEL=DEBUG ./atlas
-
-# Run with QML debugging
-QML_IMPORT_TRACE=1 ./atlas
-
-# Run with graphics debugging
-QSG_INFO=1 ./atlas
-```
-
-For more information, see the [ATLAS Development Guide](../../docs/dev/atlas-development.md).
