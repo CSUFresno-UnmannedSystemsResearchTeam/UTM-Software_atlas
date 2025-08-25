@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://atlas.com/schemas/common/v1.0"
+           xmlns:tns="http://utm-systems.com/schemas/common/v1.0"
+           elementFormDefault="qualified">
+
+    <!-- Basic measurement type with unit -->
+    <!-- WARN  Is it a double but has a string to specifiy type -->
+    <xs:complexType name="Measurement">
+        <xs:simpleContent>
+            <xs:extension base="xs:double">
+                <xs:attribute name="unit" type="xs:string" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- Range type with min/max/step -->
+    <xs:complexType name="Range">
+        <xs:attribute name="min" type="xs:double" use="required"/>
+        <xs:attribute name="max" type="xs:double" use="required"/>
+        <xs:attribute name="step" type="xs:double"/>
+        <xs:attribute name="unit" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- Options list for dropdown selections -->
+    <xs:complexType name="Options">
+        <xs:sequence>
+            <xs:element name="Option" type="xs:string" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Resolution specification -->
+    <xs:complexType name="Resolution">
+        <xs:sequence>
+            <xs:element name="Width" type="xs:int"/>
+            <xs:element name="Height" type="xs:int"/>
+            <xs:element name="Name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- List of resolutions -->
+    <xs:complexType name="ResolutionList">
+        <xs:sequence>
+            <xs:element name="Resolution" type="tns:ResolutionType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- WARN  May need to combine with a resolution-->
+    <!-- Frame rate list -->
+    <xs:complexType name="FrameRateList">
+        <xs:sequence>
+            <xs:element name="FrameRate" type="xs:int" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- GPS coordinates -->
+    <xs:complexType name="GPSCoordinate">
+        <xs:sequence>
+            <xs:element name="Latitude" type="xs:double"/>
+            <xs:element name="Longitude" type="xs:double"/>
+            <xs:element name="Altitude" type="tns:Measurement"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Version information -->
+    <xs:complexType name="Version">
+        <xs:sequence>
+            <xs:element name="Major" type="xs:int"/>
+            <xs:element name="Minor" type="xs:int"/>
+            <xs:element name="Patch" type="xs:int"/>
+            <xs:element name="Build" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Generic property with typed value -->
+    <xs:complexType name="Property">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="name" type="xs:string" use="required"/>
+                <xs:attribute name="type" type="tns:DataType" use="required"/>
+                <xs:attribute name="unit" type="xs:string"/>
+                <xs:attribute name="readonly" type="xs:boolean" default="false"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- List of properties -->
+    <xs:complexType name="Properties">
+        <xs:sequence>
+            <xs:element name="Property" type="tns:Property" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Data type enumeration -->
+    <xs:simpleType name="DataType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="string"/>
+            <xs:enumeration value="int"/>
+            <xs:enumeration value="double"/>
+            <xs:enumeration value="float"/>
+            <xs:enumeration value="boolean"/>
+            <xs:enumeration value="datetime"/>
+            <xs:enumeration value="duration"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Priority levels -->
+    <xs:simpleType name="PriorityLevel">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="emergency"/>
+            <xs:enumeration value="high"/>
+            <xs:enumeration value="medium"/>
+            <xs:enumeration value="low"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- WARN Expand? -->
+    <!-- Status enumeration -->
+    <xs:simpleType name="Status">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="active"/>
+            <xs:enumeration value="inactive"/>
+            <xs:enumeration value="error"/>
+            <xs:enumeration value="maintenance"/>
+            <xs:enumeration value="unknown"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Generic ID type with validation -->
+    <xs:simpleType name="ID">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[a-zA-Z][a-zA-Z0-9_-]*"/>
+            <xs:minLength value="1"/>
+            <xs:maxLength value="64"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Network address types -->
+    <xs:simpleType name="IPv4Address">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Port">
+        <xs:restriction base="xs:int">
+            <xs:minInclusive value="1"/>
+            <xs:maxInclusive value="65535"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Frequency specification -->
+    <xs:complexType name="Frequency">
+        <xs:simpleContent>
+            <xs:extension base="xs:double">
+                <xs:attribute name="unit" type="tns:FrequencyUnit" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:simpleType name="FrequencyUnit">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="hz"/>
+            <xs:enumeration value="khz"/>
+            <xs:enumeration value="mhz"/>
+            <xs:enumeration value="ghz"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Time duration -->
+    <xs:complexType name="Duration">
+        <xs:simpleContent>
+            <xs:extension base="xs:double">
+                <xs:attribute name="unit" type="tns:TimeUnit" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:simpleType name="TimeUnit">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="microseconds"/>
+            <xs:enumeration value="milliseconds"/>
+            <xs:enumeration value="seconds"/>
+            <xs:enumeration value="minutes"/>
+            <xs:enumeration value="hours"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>
